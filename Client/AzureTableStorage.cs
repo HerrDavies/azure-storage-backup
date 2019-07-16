@@ -1,6 +1,7 @@
 ﻿using Microsoft.Azure.Cosmos.Table;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace Client
@@ -50,8 +51,30 @@ namespace Client
             CloudTable table = _tableClient.GetTableReference(tableName);
 
             TableQuery query = new TableQuery { };
-            
+
             return table.ExecuteQuery(query);
+        }
+
+        public void TableContentsSave(string tableName, List<DynamicTableEntity> entries)
+        {
+            CloudTable table = _tableClient.GetTableReference(tableName);
+
+            TableBatchOperation saveOperation = new TableBatchOperation();
+
+            foreach (var entry in entries)
+            {
+                saveOperation.Add(TableOperation.Insert(entries[0]));
+            }
+
+            try
+            {
+                table.ExecuteBatch(saveOperation);
+            }
+            catch (Exception ex)
+            {
+
+            }
+
         }
     }
 }

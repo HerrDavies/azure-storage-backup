@@ -1,6 +1,8 @@
 ﻿using Microsoft.Azure.Cosmos.Table;
 using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
+using System.Dynamic;
 using System.Linq;
 
 namespace Client
@@ -63,17 +65,55 @@ namespace Client
 
 
 
+
+
+
+
+
             foreach (var table in tableStorage.TableListGet())
             {
+
+                var tablecontents = tableStorage.TableContentsGet(table.Name).ToList();
+
+
+                tableStorage.TableContentsSave($"{table.Name}_new", tablecontents);
+
+
+
+
+
+
                 Console.WriteLine($"Found table: {table.Name}");
 
                 var entries = table.ExecuteQuery(new TableQuery()).ToList();
 
+                var entriesToSave = new List<IDictionary<string, object>>();
+
                 foreach (var entry in entries)
                 {
+
+                    var newEntry = new ExpandoObject() as IDictionary<string, object>;
+
+                    newEntry.Add("PartitionKey", entry.PartitionKey);
+                    newEntry.Add("RowKey", entry.RowKey);
+                    newEntry.Add("Timestamp", entry.Timestamp);
+
+                    foreach (var property in entry.Properties)
+                    {
+                        newEntry.Add(property.Key, property.Value);
+                    }
+
+                    entriesToSave.Add(newEntry);
+
                     Console.WriteLine($"Found: {JsonConvert.SerializeObject(entry)}");
                 }
             }
+
+
+
+
+
+
         }
     }
 }
